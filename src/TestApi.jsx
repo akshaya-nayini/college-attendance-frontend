@@ -46,11 +46,12 @@ String(new Date().getDate()).padStart(2, "0")
 
       setStudents(uniqueStudents);
     } catch (error) {
-      console.error(error);
-      setMessage("Could not load attendance. Check the backend.");
-    }
-  }
-
+  console.error("Attendance error:", error);
+  setMessage(
+    "Error: " +
+    (error.response?.status || error.message)
+  );
+}
   useEffect(() => {
     loadAttendance();
   }, [selectedDate]);
