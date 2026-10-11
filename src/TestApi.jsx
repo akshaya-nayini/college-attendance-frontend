@@ -2,29 +2,24 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "https://college-attendance-backend-i50d.onrender.com/api/attendance";
+const API_URL =
+  "https://college-attendance-backend-i50d.onrender.com/api/attendance";
+
 function API() {
   const [students, setStudents] = useState([]);
-  new Date().getFullYear() +
-"-" +
-String(new Date().getMonth() + 1).padStart(2, "0") +
-"-" +
-
-String(new Date().getDate()).padStart(2, "0")
   const [name, setName] = useState("");
   const [rollNumber, setRollNumber] = useState("");
   const [department, setDepartment] = useState("ECE");
   const [year, setYear] = useState("3rd Year");
   const [message, setMessage] = useState("");
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().slice(0, 10)
+    new Date().toLocaleDateString("en-CA")
   );
 
   async function loadAttendance() {
     try {
       const response = await axios.get(API_URL);
       const records = response.data;
-
       const filteredRecords = records.filter(
         (record) => record.date === selectedDate
       );
@@ -46,12 +41,11 @@ String(new Date().getDate()).padStart(2, "0")
 
       setStudents(uniqueStudents);
     } catch (error) {
-  console.error("Attendance error:", error);
-  setMessage(
-    "Error: " +
-    (error.response?.status || error.message)
-  );
-}
+      console.error("Load error:", error);
+      setMessage("Could not load attendance. Check backend.");
+    }
+  }
+
   useEffect(() => {
     loadAttendance();
   }, [selectedDate]);
@@ -65,7 +59,7 @@ String(new Date().getDate()).padStart(2, "0")
     }
 
     if (students.some((s) => s.rollNumber === rollNumber.trim())) {
-      setMessage("This roll number already exists in the selected date.");
+      setMessage("This roll number already exists for this date.");
       return;
     }
 
@@ -80,11 +74,9 @@ String(new Date().getDate()).padStart(2, "0")
       },
     ]);
 
+    setMessage("Student added. Now mark attendance to save it.");
     setName("");
     setRollNumber("");
-    setMessage(
-      "Student added. Mark attendance to save the attendance record."
-    );
   }
 
   async function markAttendance(student, status) {
@@ -96,24 +88,25 @@ String(new Date().getDate()).padStart(2, "0")
         status,
       });
 
-      setMessage("Attendance saved to MongoDB!");
+      setMessage("Attendance saved successfully!");
       await loadAttendance();
     } catch (error) {
-      console.error(error);
-      setMessage("Could not save attendance. Check the backend.");
+      console.error("Attendance error:", error);
+      setMessage(
+        "Save failed: " +
+          (error.response?.status || error.message)
+      );
     }
   }
 
- async function checkBackend() {
-  try {
-    const response = await axios.get(
-      "https://college-attendance-backend-i50d.onrender.com/api/attendance"
-    );
-    setMessage("Backend connected successfully!");
-  } catch (error) {
-    setMessage("Backend connection failed.");
+  async function checkBackend() {
+    try {
+      await axios.get(API_URL);
+      setMessage("Backend connected successfully!");
+    } catch (error) {
+      setMessage("Backend connection failed: " + error.message);
+    }
   }
-}
 
   return (
     <div
@@ -130,7 +123,6 @@ String(new Date().getDate()).padStart(2, "0")
       <button onClick={checkBackend}>Check Backend Connection</button>
 
       <h2>Add Student</h2>
-
       <form onSubmit={addStudent}>
         <p>
           <label>Student Name: </label>
@@ -183,7 +175,6 @@ String(new Date().getDate()).padStart(2, "0")
       {message && <p>{message}</p>}
 
       <h2>Student Attendance Records</h2>
-
       <div style={{ marginBottom: "15px" }}>
         <label>Select Attendance Date: </label>
         <input
@@ -209,7 +200,6 @@ String(new Date().getDate()).padStart(2, "0")
               <th>Mark Attendance</th>
             </tr>
           </thead>
-
           <tbody>
             {students.length === 0 ? (
               <tr>
@@ -225,11 +215,13 @@ String(new Date().getDate()).padStart(2, "0")
                   <td>{student.status}</td>
                   <td>
                     <button
+                      type="button"
                       onClick={() => markAttendance(student, "Present")}
                     >
                       Present
                     </button>{" "}
                     <button
+                      type="button"
                       onClick={() => markAttendance(student, "Absent")}
                     >
                       Absent
