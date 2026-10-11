@@ -104,14 +104,16 @@ String(new Date().getDate()).padStart(2, "0")
     }
   }
 
-  async function checkBackend() {
-    try {
-      const response = await axios.get("http://localhost:8080/");
-      setMessage(String(response.data));
-    } catch (error) {
-      setMessage("Backend connection failed.");
-    }
+ async function checkBackend() {
+  try {
+    const response = await axios.get(
+      "https://college-attendance-backend-i50d.onrender.com/api/attendance"
+    );
+    setMessage("Backend connected successfully!");
+  } catch (error) {
+    setMessage("Backend connection failed.");
   }
+}
 
   return (
     <div
