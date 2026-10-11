@@ -20,6 +20,7 @@ function API() {
     try {
       const response = await axios.get(API_URL);
       const records = response.data;
+
       const filteredRecords = records.filter(
         (record) => record.date === selectedDate
       );
@@ -29,6 +30,7 @@ function API() {
           filteredRecords.map((record) => [
             record.rollNumber,
             {
+              id: record.id,
               name: record.studentName,
               rollNumber: record.rollNumber,
               department: "ECE",
@@ -108,6 +110,29 @@ function API() {
     }
   }
 
+  async function deleteAttendance(student) {
+    if (!student.id) {
+      setMessage("Save attendance before deleting.");
+      return;
+    }
+
+    if (!window.confirm("Delete this attendance record?")) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_URL}/${student.id}`);
+      setMessage("Attendance deleted successfully!");
+      await loadAttendance();
+    } catch (error) {
+      console.error("Delete error:", error);
+      setMessage(
+        "Delete failed: " +
+          (error.response?.status || error.message)
+      );
+    }
+  }
+
   return (
     <div
       style={{
@@ -120,9 +145,12 @@ function API() {
       <h1>College Attendance System</h1>
       <p>Manage student details and daily attendance.</p>
 
-      <button onClick={checkBackend}>Check Backend Connection</button>
+      <button onClick={checkBackend}>
+        Check Backend Connection
+      </button>
 
       <h2>Add Student</h2>
+
       <form onSubmit={addStudent}>
         <p>
           <label>Student Name: </label>
@@ -175,6 +203,7 @@ function API() {
       {message && <p>{message}</p>}
 
       <h2>Student Attendance Records</h2>
+
       <div style={{ marginBottom: "15px" }}>
         <label>Select Attendance Date: </label>
         <input
@@ -188,7 +217,10 @@ function API() {
         <table
           border="1"
           cellPadding="10"
-          style={{ borderCollapse: "collapse", width: "100%" }}
+          style={{
+            borderCollapse: "collapse",
+            width: "100%",
+          }}
         >
           <thead>
             <tr>
@@ -198,12 +230,16 @@ function API() {
               <th>Year</th>
               <th>Status</th>
               <th>Mark Attendance</th>
+              <th>Delete</th>
             </tr>
           </thead>
+
           <tbody>
             {students.length === 0 ? (
               <tr>
-                <td colSpan="6">No attendance records for this date.</td>
+                <td colSpan="7">
+                  No attendance records for this date.
+                </td>
               </tr>
             ) : (
               students.map((student) => (
@@ -216,15 +252,29 @@ function API() {
                   <td>
                     <button
                       type="button"
-                      onClick={() => markAttendance(student, "Present")}
+                      onClick={() =>
+                        markAttendance(student, "Present")
+                      }
                     >
                       Present
                     </button>{" "}
+
                     <button
                       type="button"
-                      onClick={() => markAttendance(student, "Absent")}
+                      onClick={() =>
+                        markAttendance(student, "Absent")
+                      }
                     >
                       Absent
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      disabled={!student.id}
+                      onClick={() => deleteAttendance(student)}
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
