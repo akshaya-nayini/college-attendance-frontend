@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const API_URL = "http://localhttps://college-attendance-backend-i50d.onrender.com/api/attendancehost:8080/api/attendance";
-
+const API_URL = "https://college-attendance-backend-i50d.onrender.com/api/attendance";
 function API() {
   const [students, setStudents] = useState([]);
   new Date().getFullYear() +
